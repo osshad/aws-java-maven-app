@@ -9,7 +9,7 @@ def gv
 pipeline {   
     agent any
     tools {
-        maven 'Maven'
+        maven 'maven-3.10'
     }
     environment {
         IMAGE_NAME = 'olushad/demo-app:java-maven-1.0'
