@@ -11,8 +11,14 @@ pipeline {
     tools {
         maven 'maven-3.10'
     }
-    environment {
-        IMAGE_NAME = 'olushad/demo-app:java-maven-2.0'
+    stage("increment version") {
+        steps {
+            script {
+                def imageTag = incrementVersion()
+                echo "Image tag: ${imageTag}"
+                env.IMAGE_NAME = imageTag
+            }
+        }
     }
     stages {
         stage("build jar") {
@@ -38,12 +44,21 @@ pipeline {
                 script {
                     echo 'deploying docker image to EC2...'
                     def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
+                    def ec2Instance "ec2-user@3.148.201.188"
                     // def dockerComposeCmd = "docker-compose -f docker-compose.yaml up -d"
                     sshagent(credentials: ['ec2-server-key'], executable: '') {
-                        sh "scp server-cmds.sh ec2-user@3.148.201.188:/home/ec2-user"
-                        sh "scp docker-compose.yaml ec2-user@3.148.201.188:/home/ec2-user"
-                        sh "ssh -o StrictHostKeyChecking=no ec2-user@3.148.201.188 ${shellCmd}"
+                        sh "scp server-cmds.sh ${ec2Instance}:/home/ec2-user"
+                        sh "scp docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+                        sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                     }
+                }
+            }
+        }
+
+        stage("commit version update") {
+            steps {
+                script {
+                    gv.commitVersionUpdate()
                 }
             }
         }               
