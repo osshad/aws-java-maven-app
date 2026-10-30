@@ -15,14 +15,6 @@ pipeline {
         IMAGE_NAME = 'olushad/demo-app:java-maven-1.0'
     }
     stages {
-        stage("init") {
-            steps {
-                script {
-                    gv = load "script.groovy"
-                }
-            }
-        }
-
         stage("build jar") {
             steps {
                 script {
